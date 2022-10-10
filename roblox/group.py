@@ -114,4 +114,6 @@ class Group:
             if resp.status == 400:
                 raise TypeError('Group does not exist.')
             elif resp.status == 200:
-                return MemberList(await resp.json())
+                data = await resp.json()
+                members = MemberList(data)
+                return members
