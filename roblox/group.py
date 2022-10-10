@@ -9,10 +9,10 @@ class GroupMember:
         'role'
     )
     def __init__(self, data):
-        self.name = data['username']
-        self.display = data['displayName']
-        self.id = data['userId']
-        self.verified_badge = data['hasVerifiedBadge']
+        self.name = data['user']['username']
+        self.display = data['user']['displayName']
+        self.id = data['user']['userId']
+        self.verified_badge = data['user']['hasVerifiedBadge']
         self.role = GroupRole(data['role'])
 
     def __str__(self):
@@ -23,15 +23,13 @@ class GroupRole:
         'id',
         'name',
         'description',
-        'rank',
-        'member_count'
+        'rank'
     )
     def __init__(self, data):
         self.id = data['id']
         self.name = data['name']
-        self.description = data['description']
         self.rank = data['rank']
-        self.member_count = data['memberCount']
+        self.description = data.get('description')
 
     def __str__(self):
         return self.name
@@ -43,7 +41,7 @@ class MemberList:
         'previouspagecursor'
     )
     def __init__(self, data):
-        self.members = [(GroupMember(member) for member in data['data'])]
+        self.members = [GroupMember(member) for member in data['data']]
         self.nextpagecursor = data['nextPageCursor']
         self.previouspagecursor = data['previousPageCursor']
 
@@ -56,7 +54,7 @@ class MemberList:
                     raise TypeError('Group does not exist.')
                 elif resp.status == 200:
                     data = await resp.json()
-                    self.members = [(GroupMember(member) for member in data['data'])]
+                    self.members = [GroupMember(member) for member in data['data']]
                     self.nextpagecursor = data['nextPageCursor']
                     self.previouspagecursor = data['previousPageCursor']
                     return True
@@ -72,7 +70,7 @@ class MemberList:
                     raise TypeError('Group does not exist.')
                 elif resp.status == 200:
                     data = await resp.json()
-                    self.members = [(GroupMember(member) for member in data['data'])]
+                    self.members = [GroupMember(member) for member in data['data']]
                     self.nextpagecursor = data['nextPageCursor']
                     self.previouspagecursor = data['previousPageCursor']
                     return True
@@ -105,7 +103,7 @@ class Group:
     def __str__(self):
         return self.name
 
-    async def get_members(
+    async def get_member_list(
         self
     ) -> None:
         session = aiohttp.ClientSession()
