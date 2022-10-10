@@ -87,6 +87,7 @@ class Group:
         'owner_id',
         'member_count',
         'builders_club_only',
+        'public',
         'hasVerifiedBadge',
         'thumbnail'
     )
