@@ -6,13 +6,15 @@ class GroupMember:
         'display',
         'id',
         'verified_badge',
-        'role'
+        'role',
+        'thumbnail'
     )
     def __init__(self, data):
         self.name = data['user']['username']
         self.display = data['user']['displayName']
         self.id = data['user']['userId']
         self.verified_badge = data['user']['hasVerifiedBadge']
+        self.thumbnail = data['user'].get('thumbnail')
         self.role = GroupRole(data['role'])
 
     def __str__(self):
@@ -104,14 +106,38 @@ class Group:
         return self.name
 
     async def get_member_list(
-        self
+        self,
+        thumbnail: bool = False
     ) -> None:
         session = aiohttp.ClientSession()
-        async with session.get('https://groups.roblox.com/v1/groups/{}/users?sortOrder=Asc&limit=100'.format(self.id)) as resp:
-            await session.close()
+        async with session.get('https://groups.roblox.com/v1/groups/{}/users?sortOrder=Desc&limit=100'.format(self.id)) as resp:
             if resp.status == 400:
+                await session.close()
                 raise TypeError('Group does not exist.')
             elif resp.status == 200:
                 data = await resp.json()
+                if thumbnail:
+                    async with session.post('https://thumbnails.roblox.com/v1/batch', json=[
+                        {
+                            'format': 'png',
+                            'requestId': '{}::AvatarHeadshot:150x150:png:regular',
+                            'size': '150x150',
+                            'targetId': user['user']['userId'],
+                            'token': '',
+                            'type': 'AvatarHeadShot'
+                        } for user in data['data']
+                    ]) as resp:
+                        if resp.status == 200:
+                            new = await resp.json()
+                            images = new['data']
+                            users = data['data']
+                            if len(images) == len(users):
+                                for i in range(0, len(images)):
+                                    if images[i]['errorCode'] == 0:
+                                        for x in range(0, len(users)):
+                                            if users[x]['user']['userId'] == images[i]['targetId']:
+                                                users[x]['user']['thumbnail'] = images[i]['imageUrl']
+                                                break
+                await session.close()
                 members = MemberList(data)
                 return members
