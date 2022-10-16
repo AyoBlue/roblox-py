@@ -4,8 +4,6 @@ from .user import User
 from .group import Group
 from .log import Log, SaleEntry
 
-loop = asyncio.get_event_loop()
-
 class Client:
     def __init__(
         self,
@@ -169,7 +167,8 @@ class Client:
         user_id: int
     ) -> False:
         session = aiohttp.ClientSession()
-        async with session.delete('https://groups.roblox.com/v1/groups/{}/users/{}'.format(group_id, user_id), headers=self.headers, cookies=self.cookies) as resp:
+        link = 'https://groups.roblox.com/v1/groups/{}/users/{}'.format(group_id, user_id)
+        async with session.delete(link, headers=self.headers, cookies=self.cookies) as resp:
             await session.close()
             if resp.status == 200:
                 return True
