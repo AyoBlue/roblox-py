@@ -105,18 +105,6 @@ class Group:
     def __str__(self):
         return self.name
 
-    async def exile(
-        self,
-        user_id: int
-    ) -> False:
-        session = aiohttp.ClientSession()
-        async with session.delete('https://groups.roblox.com/v1/groups/{}/users/{}'.format(self.id, user_id)) as resp:
-            await session.close()
-            if resp.status == 200:
-                return True
-            else:
-                raise TypeError('Could not ban the user with the ID: ' + str(user_id))
-
     async def get_member_list(
         self,
         thumbnail: bool = False

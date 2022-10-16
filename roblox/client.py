@@ -163,6 +163,19 @@ class Client:
                 next_cursor = resp.get('nextPageCursor')
                 return previous_cursor, next_cursor, [Log(entry) for entry in resp['data']]
 
+    async def exile(
+        self,
+        group_id: int,
+        user_id: int
+    ) -> False:
+        session = aiohttp.ClientSession()
+        async with session.delete('https://groups.roblox.com/v1/groups/{}/users/{}'.format(group_id, user_id), headers=self.headers, cookies=self.cookies) as resp:
+            await session.close()
+            if resp.status == 200:
+                return True
+            else:
+                raise TypeError('Could not ban the user with the ID: ' + str(user_id))
+
     async def join_group(
         self,
         group: int
